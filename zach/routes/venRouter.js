@@ -1,7 +1,8 @@
-'use strict'
+'use strict';
 const express = require('express');
 const bodyParser = require('body-parser').json();
 const Venue = require('./../schema/venue');
+const jwtAuth = require('./../lib/jwt_auth');
 
 const router = module.exports = exports = express.Router();
 
@@ -12,7 +13,7 @@ router.get('/', (req, res, next) => {
   });
 });
 
-router.post('/', bodyParser, (req, res, next) => {
+router.post('/', bodyParser, jwtAuth, (req, res, next) => {
   let newVenue = new Venue(req.body);
   newVenue.save((err, venue) => {
     if (err) return next(err);
@@ -20,18 +21,18 @@ router.post('/', bodyParser, (req, res, next) => {
   });
 });
 
-router.put('/', bodyParser, (req, res, next) => {
+router.put('/', bodyParser, jwtAuth, (req, res, next) => {
   let _id = req.body._id;
-  Venue.findOneAndUpdate({_id}, req.body, (err, venue) => {
+  Venue.findOneAndUpdate({_id}, req.body, (err) => {
     if (err) return next(err);
     let message = 'successfully updated';
     res.json({message});
   });
 });
 
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', bodyParser, jwtAuth, (req, res, next) => {
   let _id = req.params.id;
-  Venue.findOneAndRemove({_id}, (err, venue) => {
+  Venue.findOneAndRemove({_id}, (err) => {
     if(err) return next(err);
     let message = 'successfully deleted';
     res.json({message});

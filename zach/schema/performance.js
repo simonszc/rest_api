@@ -10,6 +10,6 @@ const Performance = mongoose.Schema({
   endDate: Date,
   venue: String,
   venueObject: Object
-})
+});
 
 module.exports = mongoose.model('performance', Performance);

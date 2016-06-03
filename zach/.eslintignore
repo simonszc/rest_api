@@ -1,0 +1,9 @@
+
+**/node_modules/*
+**/vendor/*
+**/*.min.js
+/*.md
+package.json
+/LICENSE
+/data
+npm-debug.log

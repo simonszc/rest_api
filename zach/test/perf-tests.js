@@ -5,9 +5,10 @@ const chaiHTTP = require('chai-http');
 chai.use(chaiHTTP);
 const expect = chai.expect;
 const request = chai.request;
-const Performance = require('./../schema/performance');
 const mongoose = require('mongoose');
 const dbPort = process.env.MONGOLAB_URI;
+let testToken = '';
+let testPerformance;
 
 process.env.MONGOLAB_URI = 'mongodb://localhost/test_db';
 require('../server.js');
@@ -15,13 +16,20 @@ require('../server.js');
 describe('performances tests', () => {
   before((done) => {
     request('localhost:3000')
-      .post('/venues')
-      .send({name: 'annex', neighborhood: 'capitol hill', servesAlcohol: true})
+      .post('/signup')
+      .send({username: 'testuser', password: 'testpassword'})
       .end((err, res) => {
-        if (err) console.log(err.message);
-        done();
-      })
-  })
+        if(err) console.log(err.message);
+        testToken = res.body.token;
+        request('localhost:3000')
+          .post('/venues')
+          .send({name: 'annex', neighborhood: 'capitol hill', servesAlcohol: true, token: testToken})
+          .end((err) => {
+            if (err) console.log(err.message);
+            done();
+          });
+      });
+  });
   after((done) => {
     process.env.MONGOLAB_URI = dbPort;
     mongoose.connection.db.dropDatabase(() => {
@@ -41,7 +49,7 @@ describe('performances tests', () => {
   it('should create a performance', (done) => {
     request('localhost:3000')
       .post('/performances/')
-      .send({name: 'frankenstein', venue: 'annex'})
+      .send({name: 'frankenstein', venue: 'annex', token: testToken})
       .end((err, res) => {
         expect(err).to.eql(null);
         expect(res).to.have.status(200);
@@ -52,12 +60,13 @@ describe('performances tests', () => {
       });
   });
   describe('tests that need data', () => {
-    let testPerformance = {name: 'test', venue: 'annex'};
     beforeEach((done) => {
+      testPerformance = {name: 'test', venue: 'annex', token: testToken};
       request('localhost:3000')
       .post('/performances')
       .send(testPerformance)
-      .end((err, res) => {
+      .end((err) => {
+        if(err) console.log(err);
         done();
       });
     });
@@ -77,12 +86,13 @@ describe('performances tests', () => {
     it('should delete a performance', (done) => {
       request('localhost:3000')
         .delete('/performances/' + testPerformance.name)
+        .set('token', testToken)
         .end((err, res) => {
           expect(err).to.eql(null);
           expect(res).to.have.status(200);
           expect(res.body.message).to.eql('test successfully deleted');
           done();
         });
-    })
+    });
   });
 });
