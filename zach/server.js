@@ -5,10 +5,12 @@ const app = express();
 const mongoose = require('mongoose');
 const errorHandler = require('./lib/error_handling.js');
 const authRouter = require('./routes/authRouter');
+const cors = require('cors');
 
 const dbPort =process.env.MONGOLAB_URI || 'mongodb://localhost/dev_db';
 
 mongoose.connect(dbPort);
+app.use(cors());
 
 const venRouter = require('./routes/venRouter');
 
